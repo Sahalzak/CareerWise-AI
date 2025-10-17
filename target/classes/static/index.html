@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerWise AI CV Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-3xl bg-white shadow-2xl rounded-xl p-8 transition-all duration-300">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-blue-800 tracking-tight">
+                CareerWise AI
+            </h1>
+            <p class="text-gray-500 mt-2">Paste Your Resume Text for Analysis (Java & Python Integration)</p>
+        </header>
+
+        <section id="upload-section">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">Paste Resume Content</h2>
+            
+            <form id="cv-input-form" class="space-y-6">
+                
+                <textarea id="resume-text-input" 
+                          name="resume_text" 
+                          rows="15"
+                          placeholder="Paste your resume or job description text here (e.g., summary, experience, skills...)"
+                          class="w-full p-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out resize-y">
+                </textarea>
+                
+                <button type="submit" id="analyze-button" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition duration-150 ease-in-out disabled:opacity-50">
+                    <span id="button-text">Analyze Resume Text</span>
+                    <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+        </section>
+        
+        <section id="results-section" class="mt-8 pt-6 border-t border-gray-200 hidden">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">AI Analysis Report</h2>
+            <div id="analysis-report-container" class="bg-gray-50 p-6 rounded-lg border border-green-200">
+                </div>
+            <button id="reset-button" class="mt-4 w-full px-4 py-2 text-sm font-medium rounded-lg text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-150 ease-in-out">
+                Clear and Analyze New Text
+            </button>
+        </section>
+        
+        <div id="message-box" class="mt-6 p-4 rounded-lg hidden" role="alert">
+            <p id="message-text" class="font-medium"></p>
+        </div>
+
+    </div>
+
+    <script>
+        const form = document.getElementById('cv-input-form');
+        const analyzeButton = document.getElementById('analyze-button');
+        const buttonText = document.getElementById('button-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const resultsSection = document.getElementById('results-section');
+        const reportContainer = document.getElementById('analysis-report-container');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const resetButton = document.getElementById('reset-button');
+        const textInput = document.getElementById('resume-text-input');
+        
+        // --- Utility Functions ---
+
+        function showMessage(text, isError = false) {
+            messageBox.classList.remove('hidden', 'bg-red-100', 'border-red-400', 'text-red-700', 'bg-green-100', 'border-green-400', 'text-green-700');
+            
+            if (isError) {
+                messageBox.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+            } else {
+                messageBox.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+            }
+            messageText.textContent = text;
+        }
+
+        function setLoading(isLoading) {
+            analyzeButton.disabled = isLoading;
+            textInput.disabled = isLoading;
+            if (isLoading) {
+                loadingSpinner.classList.remove('hidden');
+                buttonText.textContent = 'Analyzing...';
+            } else {
+                loadingSpinner.classList.add('hidden');
+                buttonText.textContent = 'Analyze Resume Text';
+            }
+        }
+        
+        function formatReport(data) {
+            // Check for error structure first
+            if (data.error) {
+                return `
+                    <div class="text-center text-red-600 space-y-3">
+                        <p class="font-bold text-lg">AI Service Error</p>
+                        <p class="text-sm text-red-500">Score: ${data.score !== undefined ? data.score : 'N/A'}</p>
+                        <p class="mt-2 p-3 bg-red-50 border border-red-200 rounded-md whitespace-pre-wrap">${data.error}</p>
+                    </div>
+                `;
+            }
+
+            // Success structure
+            const scoreColor = data.score >= 90 ? 'text-green-600' : data.score >= 70 ? 'text-yellow-600' : 'text-red-600';
+            
+            let skillsList = '';
+            if (data.skills && Array.isArray(data.skills)) {
+                skillsList = data.skills.map(skill => 
+                    `<span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">${skill}</span>`
+                ).join('');
+            }
+
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <p class="text-xl font-medium text-gray-800">Overall Score</p>
+                        <span class="text-4xl font-extrabold ${scoreColor}">${data.score}%</span>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-medium text-gray-800 mb-2">Summary</p>
+                        <p class="text-gray-600">${data.summary}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-medium text-gray-800 mb-2">Key Skills Detected</p>
+                        <div class="flex flex-wrap gap-2">${skillsList || '<span class="text-gray-500">No key skills detected.</span>'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Event Handlers ---
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const resumeText = textInput.value.trim();
+            if (resumeText.length < 10) {
+                showMessage("Please paste a resume of at least 10 characters.", true);
+                return;
+            }
+
+            setLoading(true);
+            messageBox.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            
+            // Prepare the JSON payload
+            const payload = {
+                resume_content: resumeText
+            };
+
+            try {
+                // Submitting JSON
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json' // Crucial for JSON submission
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                    const resultText = await response.text();
+                    
+                    try {
+                        const resultJson = JSON.parse(resultText);
+                        
+                        reportContainer.innerHTML = formatReport(resultJson);
+                        resultsSection.classList.remove('hidden');
+                        showMessage("CV analysis received successfully!", false);
+
+                    } catch (jsonError) {
+                        reportContainer.innerHTML = `<p class="text-red-600 font-medium">Non-JSON Response from Backend:</p><p class="text-sm mt-2 whitespace-pre-wrap">${resultText}</p>`;
+                        resultsSection.classList.remove('hidden');
+                        showMessage("Received raw text. Check console for details.", true);
+                        console.error("Non-JSON response received:", resultText);
+                    }
+                    
+                } else {
+                    const errorText = await response.text();
+                    const status = response.status;
+                    
+                    showMessage(`ERROR! Status: ${status}. Details: ${errorText.substring(0, 100)}...`, true);
+                    console.error("Server Error:", status, errorText);
+                }
+
+            } catch (networkError) {
+                showMessage(`NETWORK ERROR: Could not connect to the Java application. ${networkError.message}`, true);
+                console.error("Network Error:", networkError);
+            } finally {
+                setLoading(false);
+            }
+        });
+        
+        resetButton.addEventListener('click', () => {
+            textInput.value = '';
+            resultsSection.classList.add('hidden');
+            messageBox.classList.add('hidden');
+            textInput.focus();
+        });
+        
+    </script>
+</body>
+</html>
