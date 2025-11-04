@@ -1,0 +1,20 @@
+from tkinter import *
+
+def convert():
+    km = float(entry.get())
+    miles = km * 0.621371
+    result_var.set(f"{miles:.2f} Miles")
+
+root = Tk()
+root.title("Unit Converter")
+root.geometry("300x150")
+
+Label(root, text="Enter distance in KM:").pack(pady=5)
+entry = Entry(root)
+entry.pack(pady=5)
+
+Button(root, text="Convert", command=convert).pack(pady=5)
+result_var = StringVar()
+Label(root, textvariable=result_var, font=("Arial", 12, "bold")).pack(pady=5)
+
+root.mainloop()

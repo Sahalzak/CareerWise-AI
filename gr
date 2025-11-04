@@ -1,0 +1,16 @@
+def simple_interest_calculator():
+    print("---- SIMPLE INTEREST CALCULATOR ----")
+    p = float(input("Enter Principal amount (₹): "))
+    r = float(input("Enter Rate of Interest (%): "))
+    t = float(input("Enter Time (in years): "))
+    si = (p * r * t) / 100
+    total = p + si
+    print("\n------ RESULT ------")
+    print(f"Principal Amount : ₹{p}")
+    print(f"Rate of Interest : {r}%")
+    print(f"Time Period      : {t} years")
+    print(f"Simple Interest  : ₹{si}")
+    print(f"Total Amount     : ₹{total}")
+    print("-" * 50)
+
+simple_interest_calculator()

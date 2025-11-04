@@ -1,0 +1,14 @@
+def check_palindrome():
+    print("---- PALINDROME CALCULATOR ----")
+    text = input("Enter a word, phrase, or number: ")
+    processed = text.replace(" ", "").lower()
+    reversed_text = processed[::-1]
+    print("Original (processed):", processed)
+    print("Reversed:", reversed_text)
+    if processed == reversed_text:
+        print("The given input is a Palindrome.")
+    else:
+        print("The given input is NOT a Palindrome.")
+    print("-" * 50)
+
+check_palindrome()

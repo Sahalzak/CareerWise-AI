@@ -1,0 +1,17 @@
+from tkinter import *
+
+def save_note():
+    note = text_box.get("1.0", END)
+    with open("note.txt", "w") as f:
+        f.write(note)
+
+root = Tk()
+root.title("Sticky Notes")
+root.geometry("300x300")
+
+text_box = Text(root, font=("Arial", 12))
+text_box.pack(fill=BOTH, expand=True)
+
+Button(root, text="Save Note", command=save_note).pack(pady=5)
+
+root.mainloop()

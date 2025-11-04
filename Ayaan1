@@ -1,0 +1,19 @@
+from tkinter import *
+from tkinter import colorchooser
+
+def pick_color():
+    color = colorchooser.askcolor()[1]
+    if color:
+        root.config(bg=color)
+        label.config(text=f"Selected: {color}", bg=color)
+
+root = Tk()
+root.title("Color Picker")
+root.geometry("300x150")
+
+label = Label(root, text="Pick a Color", font=("Arial", 14))
+label.pack(pady=20)
+
+Button(root, text="Choose Color", command=pick_color).pack(pady=10)
+
+root.mainloop()
